@@ -12,8 +12,9 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		
 		$this->assertSame( 'TinyMemcacheClient', get_class( $client ) );
 		
-		$this->assertSame( 'STORED', $client->set( 'key', 'value' ) );
-		$this->assertSame( 'value', $client->get( 'key' ) );
+		$this->assertSame( 'STORED', $client->set( 'key', 'string' ) );
+		$this->assertSame( 'string', $client->get( 'key' ) );
+		
 		$this->assertSame( null, $client->get( 'wrong-key' ) );
 	}
 }
