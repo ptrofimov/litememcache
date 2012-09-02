@@ -49,7 +49,10 @@ class TinyMemcacheClient
 			
 			if ( $cmd == 'END' )
 			{
-				$values[] = null;
+				if ( !is_array( $key ) )
+				{
+					$values[] = null;
+				}
 				break;
 			}
 			elseif ( $cmd == 'ERROR' )
@@ -68,7 +71,7 @@ class TinyMemcacheClient
 			}
 			elseif ( $cmd == 'VALUE' )
 			{
-				list( $cmd, $key, $exp, $length ) = explode( ' ', $line );
+				list( $cmd, $key1, $exp, $length ) = explode( ' ', $line );
 				$value = fread( $this->_socket, $length + 2 );
 				$values[] = substr( $value, 0, strlen( $value ) - 2 );
 			}
@@ -77,6 +80,7 @@ class TinyMemcacheClient
 				throw new Exception( 'System error' );
 			}
 		}
+		//var_dump( $values );
 		return is_array( $key ) ? $values : $values[ 0 ];
 	}
 }
