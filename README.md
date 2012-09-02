@@ -1,5 +1,5 @@
 # TinyMemcacheClient
 
-TinyMemcacheClient - the alternative to Memcache and Memcached client for PHP.
+TinyMemcacheClient - tiny, simple and pure-PHP alternative to Memcache and Memcached clients.
 
 **Status:** In active development
