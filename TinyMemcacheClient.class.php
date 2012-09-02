@@ -23,8 +23,17 @@ class TinyMemcacheClient
 		fwrite( $this->_socket, $cmd );
 		$line = fgets( $this->_socket );
 		$line = substr( $line, 0, strlen( $line ) - 2 );
-		list( $cmd, $key, $exp, $length ) = explode( ' ', $line );
-		$value = fread( $this->_socket, $length + 2 );
-		return substr( $value, 0, strlen( $value ) - 2 );
+		//var_dump('line',$key,$line);
+		if ( $line == 'END' )
+		{
+			$value = null;
+		}
+		else
+		{
+			list( $cmd, $key, $exp, $length ) = explode( ' ', $line );
+			$value = fread( $this->_socket, $length + 2 );
+			$value = substr( $value, 0, strlen( $value ) - 2 );
+		}
+		return $value;
 	}
 }
