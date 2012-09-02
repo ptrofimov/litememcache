@@ -45,16 +45,36 @@ class TinyMemcacheClient
 			$line = fgets( $this->_socket );
 			$line = substr( $line, 0, strlen( $line ) - 2 );
 			
-			if ( $line == 'END' )
+			list( $cmd ) = explode( ' ', $line );
+			
+			if ( $cmd == 'END' )
 			{
 				$values[] = null;
 				break;
 			}
-			else
+			elseif ( $cmd == 'ERROR' )
+			{
+				throw new Exception( 'Error: client sent a nonexistent command name' );
+			}
+			elseif ( $cmd == 'CLIENT_ERROR' )
+			{
+				list( $cmd, $msg ) = explode( ' ', $line );
+				throw new Exception( 'Error: the input doesn\'t conform to the protocol in some way: ' . $msg );
+			}
+			elseif ( $cmd == 'SERVER_ERROR' )
+			{
+				list( $cmd, $msg ) = explode( ' ', $line );
+				throw new Exception( 'Error: some sort of server error prevents the server from carrying out the command: ' . $msg );
+			}
+			elseif ( $cmd == 'VALUE' )
 			{
 				list( $cmd, $key, $exp, $length ) = explode( ' ', $line );
 				$value = fread( $this->_socket, $length + 2 );
 				$values[] = substr( $value, 0, strlen( $value ) - 2 );
+			}
+			else
+			{
+				throw new Exception( 'System error' );
 			}
 		}
 		return is_array( $key ) ? $values : $values[ 0 ];
