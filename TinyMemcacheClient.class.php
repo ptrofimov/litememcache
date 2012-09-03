@@ -11,9 +11,11 @@ class TinyMemcacheClient
 	const REPLY_STORED = 'STORED'; // Reply to storage commands: to indicate success
 	const REPLY_NOT_STORED = 'NOT_STORED'; // Reply to storage commands: to indicate the data was not stored, but not because of an error
 	const REPLY_EXISTS = 'EXISTS'; // Reply to storage commands: to indicate that the item you are trying to store with a "cas" command has been modified since you last fetched it
-	const REPLY_NOT_FOUND = 'NOT_FOUND'; // Reply to storage commands: to indicate success
 	
 
+	const REPLY_DELETED = 'DELETED';
+	const REPLY_NOT_FOUND = 'NOT_FOUND';
+	
 	private $_socket;
 	
 	public function __construct( $server )
@@ -21,11 +23,44 @@ class TinyMemcacheClient
 		$this->_socket = stream_socket_client( $server );
 	}
 	
-	public function set( $key, $value, $exptime = 0, $flags = 0, $noreply = null )
+	public function store( $cmd, $key, $flags = 0, $exptime = 0, $value = null, $noreply = null )
 	{
-		$cmd = sprintf( 'set %s %d %d %d%s' . "\r\n", $key, $flags, $exptime, strlen( $value ), 
+		$query = sprintf( '%s %s %d %d %d%s' . "\r\n", $cmd, $key, $flags, $exptime, strlen( $value ), 
 			isset( $noreply ) ? ' 1' : '' );
-		$cmd .= $value . "\r\n";
+		$query .= $value . "\r\n";
+		fwrite( $this->_socket, $query );
+		$line = fgets( $this->_socket );
+		return substr( $line, 0, strlen( $line ) - 2 );
+	}
+	
+	public function set( $key, $value, $exptime = 0 )
+	{
+		return $this->store( 'set', $key, 0, $exptime, $value );
+	}
+	
+	public function append( $key, $value )
+	{
+		return $this->store( 'append', $key, 0, 0, $value );
+	}
+	
+	public function prepend( $key, $value )
+	{
+		return $this->store( 'prepend', $key, 0, 0, $value );
+	}
+	
+	public function add( $key, $value )
+	{
+		return $this->store( 'add', $key, 0, 0, $value );
+	}
+	
+	public function replace( $key, $value )
+	{
+		return $this->store( 'replace', $key, 0, 0, $value );
+	}
+	
+	public function del( $key, $noreply = null )
+	{
+		$cmd = sprintf( 'delete %s%s' . "\r\n", $key, isset( $noreply ) ? ' 1' : '' );
 		fwrite( $this->_socket, $cmd );
 		$line = fgets( $this->_socket );
 		return substr( $line, 0, strlen( $line ) - 2 );
