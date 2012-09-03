@@ -43,24 +43,29 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testSetDifferentDataTypes( $client, $key, $set, $get )
 	{
-		$this->assertSame( $client::REPLY_STORED, $client->set( $key, $set ) );
+		$this->assertSame( true, $client->set( $key, $set ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( $get, $client->get( $key ) );
 	}
 	
 	public function testSeqSetGet()
 	{
 		$client = $this->_client;
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key', 'value1' ) );
+		$this->assertSame( true, $client->set( 'key', 'value1' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'value1', $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key', 'value2' ) );
+		$this->assertSame( true, $client->set( 'key', 'value2' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'value2', $client->get( 'key' ) );
 	}
 	
 	public function testMultipleGet()
 	{
 		$client = $this->_client;
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key1', 'value1' ) );
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key2', 'value2' ) );
+		$this->assertSame( true, $client->set( 'key1', 'value1' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
+		$this->assertSame( true, $client->set( 'key2', 'value2' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'value1', $client->get( 'key1' ) );
 		$this->assertSame( 'value2', $client->get( 'key2' ) );
 		$this->assertSame( null, $client->get( 'key3' ) );
@@ -81,7 +86,8 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 	public function testExpiredKey()
 	{
 		$client = $this->_client;
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key', 'value', 1 ) );
+		$this->assertSame( true, $client->set( 'key', 'value', 1 ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'value', $client->get( 'key' ) );
 		usleep( 1100000 );
 		$this->assertSame( null, $client->get( 'key' ) );
@@ -103,11 +109,14 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 	public function testDeleteKey()
 	{
 		$client = $this->_client;
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key', 'value' ) );
+		$this->assertSame( true, $client->set( 'key', 'value' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'value', $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_DELETED, $client->del( 'key' ) );
+		$this->assertSame( true, $client->del( 'key' ) );
+		$this->assertSame( 'DELETED', $client->getLastReply() );
 		$this->assertSame( null, $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_NOT_FOUND, $client->del( 'key' ) );
+		$this->assertSame( false, $client->del( 'key' ) );
+		$this->assertSame( 'NOT_FOUND', $client->getLastReply() );
 	}
 	
 	public function testAppend()
@@ -115,11 +124,14 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$client = $this->_client;
 		$client->del( 'key' );
 		$this->assertSame( null, $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_NOT_STORED, $client->append( 'key', 'value' ) );
+		$this->assertSame( false, $client->append( 'key', 'value' ) );
+		$this->assertSame( 'NOT_STORED', $client->getLastReply() );
 		$this->assertSame( null, $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key', 'hello' ) );
+		$this->assertSame( true, $client->set( 'key', 'hello' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'hello', $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_STORED, $client->append( 'key', ' world' ) );
+		$this->assertSame( true, $client->append( 'key', ' world' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'hello world', $client->get( 'key' ) );
 	}
 	
@@ -128,11 +140,14 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$client = $this->_client;
 		$client->del( 'key' );
 		$this->assertSame( null, $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_NOT_STORED, $client->prepend( 'key', 'value' ) );
+		$this->assertSame( false, $client->prepend( 'key', 'value' ) );
+		$this->assertSame( 'NOT_STORED', $client->getLastReply() );
 		$this->assertSame( null, $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key', 'world' ) );
+		$this->assertSame( true, $client->set( 'key', 'world' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'world', $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_STORED, $client->prepend( 'key', 'hello ' ) );
+		$this->assertSame( true, $client->prepend( 'key', 'hello ' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'hello world', $client->get( 'key' ) );
 	}
 	
@@ -141,9 +156,11 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$client = $this->_client;
 		$client->del( 'key' );
 		$this->assertSame( null, $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_STORED, $client->add( 'key', 'value1' ) );
+		$this->assertSame( true, $client->add( 'key', 'value1' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'value1', $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_NOT_STORED, $client->add( 'key', 'value2' ) );
+		$this->assertSame( false, $client->add( 'key', 'value2' ) );
+		$this->assertSame( 'NOT_STORED', $client->getLastReply() );
 		$this->assertSame( 'value1', $client->get( 'key' ) );
 	}
 	
@@ -152,11 +169,14 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$client = $this->_client;
 		$client->del( 'key' );
 		$this->assertSame( null, $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_NOT_STORED, $client->replace( 'key', 'value1' ) );
+		$this->assertSame( false, $client->replace( 'key', 'value1' ) );
+		$this->assertSame( 'NOT_STORED', $client->getLastReply() );
 		$this->assertSame( null, $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key', 'value2' ) );
+		$this->assertSame( true, $client->set( 'key', 'value2' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'value2', $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_STORED, $client->replace( 'key', 'value3' ) );
+		$this->assertSame( true, $client->replace( 'key', 'value3' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'value3', $client->get( 'key' ) );
 	}
 	
@@ -165,9 +185,11 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$client = $this->_client;
 		$client->del( 'key' );
 		$this->assertSame( null, $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_NOT_FOUND, $client->incr( 'key' ) );
+		$this->assertSame( false, $client->incr( 'key' ) );
+		$this->assertSame( 'NOT_FOUND', $client->getLastReply() );
 		$this->assertSame( null, $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key', 1 ) );
+		$this->assertSame( true, $client->set( 'key', 1 ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( '1', $client->get( 'key' ) );
 		$this->assertSame( '2', $client->incr( 'key' ) );
 		$this->assertSame( '2', $client->get( 'key' ) );
@@ -178,9 +200,11 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$client = $this->_client;
 		$client->del( 'key' );
 		$this->assertSame( null, $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_NOT_FOUND, $client->decr( 'key' ) );
+		$this->assertSame( false, $client->decr( 'key' ) );
+		$this->assertSame( 'NOT_FOUND', $client->getLastReply() );
 		$this->assertSame( null, $client->get( 'key' ) );
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key', 2 ) );
+		$this->assertSame( true, $client->set( 'key', 2 ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( '2', $client->get( 'key' ) );
 		$this->assertSame( '1', $client->decr( 'key' ) );
 		$this->assertSame( '1', $client->get( 'key' ) );
@@ -189,10 +213,13 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 	public function testFlushAll()
 	{
 		$client = $this->_client;
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key1', 'value1' ) );
-		$this->assertSame( $client::REPLY_STORED, $client->set( 'key2', 'value2' ) );
+		$this->assertSame( true, $client->set( 'key1', 'value1' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
+		$this->assertSame( true, $client->set( 'key2', 'value2' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
 		$this->assertSame( 'value1', $client->get( 'key1' ) );
 		$this->assertSame( 'value2', $client->get( 'key2' ) );
-		$this->assertSame( $client::REPLY_OK, $client->flushAll() );
+		$this->assertSame( true, $client->flushAll() );
+		$this->assertSame( 'OK', $client->getLastReply() );
 	}
 }

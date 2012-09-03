@@ -14,7 +14,7 @@ class TinyMemcacheClient
 	public function __construct( $server )
 	{
 		$this->_socket = stream_socket_client( $server );
-		$this->replies = array( 
+		$this->_replies = array( 
 			'STORED' => true, 
 			'NOT_STORED' => false, 
 			'EXISTS' => false, 
