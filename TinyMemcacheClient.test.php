@@ -186,7 +186,7 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$this->assertSame( '1', $client->get( 'key' ) );
 	}
 	
-	public function testTouch()
+	/*public function testTouch()
 	{
 		$client = $this->_client;
 		$client->del( 'key' );
@@ -201,5 +201,5 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$this->assertSame( 'value', $client->get( 'key' ) );
 		usleep( 600000 );
 		$this->assertSame( null, $client->get( 'key' ) );
-	}
+	}*/
 }
