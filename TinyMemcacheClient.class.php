@@ -4,6 +4,7 @@
  * 
  * @see https://github.com/memcached/memcached/blob/master/doc/protocol.txt
  * 
+ * @link https://github.com/ptrofimov/tinymemcacheclient
  * @author Petr Trofimov <petrofimov@yandex.ru>
  */
 class TinyMemcacheClient
@@ -25,8 +26,8 @@ class TinyMemcacheClient
 	
 	public function store( $cmd, $key, $flags = 0, $exptime = 0, $value = null, $noreply = null )
 	{
-		$query = sprintf( '%s %s %d %d %d%s' . "\r\n", $cmd, $key, $flags, $exptime, strlen( $value ), 
-			isset( $noreply ) ? ' 1' : '' );
+		$query = sprintf( '%s %s %d %d %d%s' . "\r\n", $cmd, $key, $flags, $exptime, 
+			strlen( $value ), isset( $noreply ) ? ' 1' : '' );
 		$query .= $value . "\r\n";
 		fwrite( $this->_socket, $query );
 		$line = fgets( $this->_socket );

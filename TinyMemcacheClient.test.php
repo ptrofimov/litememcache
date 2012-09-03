@@ -6,6 +6,7 @@
  * 1. Install PHPUnit: https://github.com/sebastianbergmann/phpunit/
  * 2. Run: phpunit TinyMemcacheClient.test.php
  * 
+ * @link https://github.com/ptrofimov/tinymemcacheclient
  * @author Petr Trofimov
  */
 require_once ( 'TinyMemcacheClient.class.php' );
@@ -63,9 +64,12 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$this->assertSame( 'value1', $client->get( 'key1' ) );
 		$this->assertSame( 'value2', $client->get( 'key2' ) );
 		$this->assertSame( null, $client->get( 'key3' ) );
-		$this->assertSame( array( 'value1', 'value2' ), $client->get( array( 'key1', 'key2', 'key3' ) ) );
-		$this->assertSame( array( 'value1', 'value2' ), $client->get( array( 'key1', 'key3', 'key2' ) ) );
-		$this->assertSame( array( 'value1', 'value2' ), $client->get( array( 'key3', 'key1', 'key2' ) ) );
+		$this->assertSame( array( 'value1', 'value2' ), 
+			$client->get( array( 'key1', 'key2', 'key3' ) ) );
+		$this->assertSame( array( 'value1', 'value2' ), 
+			$client->get( array( 'key1', 'key3', 'key2' ) ) );
+		$this->assertSame( array( 'value1', 'value2' ), 
+			$client->get( array( 'key3', 'key1', 'key2' ) ) );
 	}
 	
 	public function testWrongKey()
