@@ -16,6 +16,7 @@ class TinyMemcacheClient
 
 	const REPLY_DELETED = 'DELETED';
 	const REPLY_NOT_FOUND = 'NOT_FOUND';
+	const REPLY_TOUCHED = 'TOUCHED';
 	
 	private $_socket;
 	
@@ -45,6 +46,14 @@ class TinyMemcacheClient
 	public function decr( $key, $value = 1 )
 	{
 		$query = sprintf( 'decr %s %s' . "\r\n", $key, $value );
+		fwrite( $this->_socket, $query );
+		$line = fgets( $this->_socket );
+		return substr( $line, 0, strlen( $line ) - 2 );
+	}
+	
+	public function touch( $key, $exptime )
+	{
+		$query = sprintf( 'touch %s %s' . "\r\n", $key, $exptime );
 		fwrite( $this->_socket, $query );
 		$line = fgets( $this->_socket );
 		return substr( $line, 0, strlen( $line ) - 2 );
