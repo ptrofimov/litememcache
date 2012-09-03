@@ -34,6 +34,22 @@ class TinyMemcacheClient
 		return substr( $line, 0, strlen( $line ) - 2 );
 	}
 	
+	public function incr( $key, $value = 1 )
+	{
+		$query = sprintf( 'incr %s %s' . "\r\n", $key, $value );
+		fwrite( $this->_socket, $query );
+		$line = fgets( $this->_socket );
+		return substr( $line, 0, strlen( $line ) - 2 );
+	}
+	
+	public function decr( $key, $value = 1 )
+	{
+		$query = sprintf( 'decr %s %s' . "\r\n", $key, $value );
+		fwrite( $this->_socket, $query );
+		$line = fgets( $this->_socket );
+		return substr( $line, 0, strlen( $line ) - 2 );
+	}
+	
 	public function set( $key, $value, $exptime = 0 )
 	{
 		return $this->store( 'set', $key, 0, $exptime, $value );

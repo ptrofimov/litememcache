@@ -159,4 +159,30 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$this->assertSame( $client::REPLY_STORED, $client->replace( 'key', 'value3' ) );
 		$this->assertSame( 'value3', $client->get( 'key' ) );
 	}
+	
+	public function testIncr()
+	{
+		$client = $this->_client;
+		$client->del( 'key' );
+		$this->assertSame( null, $client->get( 'key' ) );
+		$this->assertSame( $client::REPLY_NOT_FOUND, $client->incr( 'key' ) );
+		$this->assertSame( null, $client->get( 'key' ) );
+		$this->assertSame( $client::REPLY_STORED, $client->set( 'key', 1 ) );
+		$this->assertSame( '1', $client->get( 'key' ) );
+		$this->assertSame( '2', $client->incr( 'key' ) );
+		$this->assertSame( '2', $client->get( 'key' ) );
+	}
+	
+	public function testDecr()
+	{
+		$client = $this->_client;
+		$client->del( 'key' );
+		$this->assertSame( null, $client->get( 'key' ) );
+		$this->assertSame( $client::REPLY_NOT_FOUND, $client->decr( 'key' ) );
+		$this->assertSame( null, $client->get( 'key' ) );
+		$this->assertSame( $client::REPLY_STORED, $client->set( 'key', 2 ) );
+		$this->assertSame( '2', $client->get( 'key' ) );
+		$this->assertSame( '1', $client->decr( 'key' ) );
+		$this->assertSame( '1', $client->get( 'key' ) );
+	}
 }
