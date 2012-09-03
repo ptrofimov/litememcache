@@ -14,6 +14,7 @@ class TinyMemcacheClient
 	const REPLY_EXISTS = 'EXISTS'; // Reply to storage commands: to indicate that the item you are trying to store with a "cas" command has been modified since you last fetched it
 	
 
+	const REPLY_OK = 'OK';
 	const REPLY_ERROR = 'ERROR';
 	const REPLY_DELETED = 'DELETED';
 	const REPLY_NOT_FOUND = 'NOT_FOUND';
@@ -55,6 +56,14 @@ class TinyMemcacheClient
 	public function touch( $key, $exptime )
 	{
 		$query = sprintf( 'touch %s %s' . "\r\n", $key, $exptime );
+		fwrite( $this->_socket, $query );
+		$line = fgets( $this->_socket );
+		return substr( $line, 0, strlen( $line ) - 2 );
+	}
+	
+	public function flushAll( $exptime = 0 )
+	{
+		$query = sprintf( 'flush_all %s' . "\r\n", $exptime );
 		fwrite( $this->_socket, $query );
 		$line = fgets( $this->_socket );
 		return substr( $line, 0, strlen( $line ) - 2 );
