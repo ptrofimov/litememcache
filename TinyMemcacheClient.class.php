@@ -29,22 +29,17 @@ class TinyMemcacheClient
 		$this->_socket = stream_socket_client( $server );
 	}
 	
-	public function query( $query, $sendData = false, $data = null )
+	public function query( $query )
 	{
-		$query = $query . self::EOL . ( !$sendData ? '' : $data . self::EOL );
-		fwrite( $this->_socket, $query );
+		$query = is_array( $query ) ? implode( self::EOL, $query ) : $query;
+		fwrite( $this->_socket, $query . self::EOL );
 		$line = fgets( $this->_socket );
 		return substr( $line, 0, strlen( $line ) - 2 );
 	}
 	
-	public function store( $cmd, $key, $flags = 0, $exptime = 0, $value = null )
-	{
-		return $this->query( "$cmd $key $flags $exptime " . strlen( $value ), true, $value );
-	}
-	
 	public function set( $key, $value, $exptime = 0, $flags = 0 )
 	{
-		return $this->store( 'set', $key, $flags, $exptime, $value );
+		return $this->query( array( "set $key $flags $exptime " . strlen( $value ), $value ) );
 	}
 	
 	public function incr( $key, $value = 1 )
@@ -64,30 +59,27 @@ class TinyMemcacheClient
 	
 	public function append( $key, $value )
 	{
-		return $this->store( 'append', $key, 0, 0, $value );
+		return $this->query( array( "append $key 0 0 " . strlen( $value ), $value ) );
 	}
 	
 	public function prepend( $key, $value )
 	{
-		return $this->store( 'prepend', $key, 0, 0, $value );
+		return $this->query( array( "prepend $key 0 0 " . strlen( $value ), $value ) );
 	}
 	
 	public function add( $key, $value, $exptime = 0, $flags = 0 )
 	{
-		return $this->store( 'add', $key, $flags, $exptime, $value );
+		return $this->query( array( "add $key $flags $exptime " . strlen( $value ), $value ) );
 	}
 	
 	public function replace( $key, $value, $exptime = 0, $flags = 0 )
 	{
-		return $this->store( 'replace', $key, $flags, $exptime, $value );
+		return $this->query( array( "replace $key $flags $exptime " . strlen( $value ), $value ) );
 	}
 	
 	public function del( $key )
 	{
-		$cmd = sprintf( 'delete %s' . "\r\n", $key );
-		fwrite( $this->_socket, $cmd );
-		$line = fgets( $this->_socket );
-		return substr( $line, 0, strlen( $line ) - 2 );
+		return $this->query( "delete $key" );
 	}
 	
 	public function get( $key )
@@ -131,7 +123,6 @@ class TinyMemcacheClient
 			elseif ( $cmd == 'VALUE' )
 			{
 				list( $cmd, $key1, $flags, $length ) = explode( ' ', $line );
-				var_dump( $line );
 				$value = fread( $this->_socket, $length + 2 );
 				$values[] = substr( $value, 0, strlen( $value ) - 2 );
 			}
@@ -140,7 +131,6 @@ class TinyMemcacheClient
 				throw new Exception( 'System error' );
 			}
 		}
-		//var_dump( $values );
 		return is_array( $key ) ? $values : $values[ 0 ];
 	}
 }
