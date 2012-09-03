@@ -14,6 +14,7 @@ class TinyMemcacheClient
 	const REPLY_EXISTS = 'EXISTS'; // Reply to storage commands: to indicate that the item you are trying to store with a "cas" command has been modified since you last fetched it
 	
 
+	const REPLY_ERROR = 'ERROR';
 	const REPLY_DELETED = 'DELETED';
 	const REPLY_NOT_FOUND = 'NOT_FOUND';
 	const REPLY_TOUCHED = 'TOUCHED';
