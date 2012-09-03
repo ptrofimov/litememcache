@@ -9,52 +9,38 @@
  */
 class TinyMemcacheClient
 {
-	const EOL = "\r\n";
-	
-	const REPLY_STORED = 'STORED'; // Reply to storage commands: to indicate success
-	const REPLY_NOT_STORED = 'NOT_STORED'; // Reply to storage commands: to indicate the data was not stored, but not because of an error
-	const REPLY_EXISTS = 'EXISTS'; // Reply to storage commands: to indicate that the item you are trying to store with a "cas" command has been modified since you last fetched it
-	
-
-	const REPLY_OK = 'OK';
-	const REPLY_ERROR = 'ERROR';
-	const REPLY_DELETED = 'DELETED';
-	const REPLY_NOT_FOUND = 'NOT_FOUND';
-	const REPLY_TOUCHED = 'TOUCHED';
-	
-	private $_socket;
+	private $_socket, $_replies, $_lastReply;
 	
 	public function __construct( $server )
 	{
 		$this->_socket = stream_socket_client( $server );
+		$this->replies = array( 
+			'STORED' => true, 
+			'NOT_STORED' => false, 
+			'EXISTS' => false, 
+			'OK' => true, 
+			'ERROR' => false, 
+			'DELETED' => true, 
+			'NOT_FOUND' => false );
+	}
+	
+	public function getLastReply()
+	{
+		return $this->_lastReply;
 	}
 	
 	public function query( $query )
 	{
-		$query = is_array( $query ) ? implode( self::EOL, $query ) : $query;
-		fwrite( $this->_socket, $query . self::EOL );
+		$query = is_array( $query ) ? implode( "\r\n", $query ) : $query;
+		fwrite( $this->_socket, $query . "\r\n" );
 		$line = fgets( $this->_socket );
-		return substr( $line, 0, strlen( $line ) - 2 );
+		$this->_lastReply = $reply = substr( $line, 0, strlen( $line ) - 2 );
+		return isset( $this->_replies[ $reply ] ) ? $this->_replies[ $reply ] : $reply;
 	}
 	
 	public function set( $key, $value, $exptime = 0, $flags = 0 )
 	{
 		return $this->query( array( "set $key $flags $exptime " . strlen( $value ), $value ) );
-	}
-	
-	public function incr( $key, $value = 1 )
-	{
-		return $this->query( "incr $key $value" );
-	}
-	
-	public function decr( $key, $value = 1 )
-	{
-		return $this->query( "decr $key $value" );
-	}
-	
-	public function flushAll( $exptime = 0 )
-	{
-		return $this->query( "flush_all $exptime" );
 	}
 	
 	public function append( $key, $value )
@@ -80,6 +66,21 @@ class TinyMemcacheClient
 	public function del( $key )
 	{
 		return $this->query( "delete $key" );
+	}
+	
+	public function incr( $key, $value = 1 )
+	{
+		return $this->query( "incr $key $value" );
+	}
+	
+	public function decr( $key, $value = 1 )
+	{
+		return $this->query( "decr $key $value" );
+	}
+	
+	public function flushAll( $exptime = 0 )
+	{
+		return $this->query( "flush_all $exptime" );
 	}
 	
 	public function get( $key )
