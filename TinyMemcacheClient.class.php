@@ -9,6 +9,8 @@
  */
 class TinyMemcacheClient
 {
+	const EOL = "\r\n";
+	
 	const REPLY_STORED = 'STORED'; // Reply to storage commands: to indicate success
 	const REPLY_NOT_STORED = 'NOT_STORED'; // Reply to storage commands: to indicate the data was not stored, but not because of an error
 	const REPLY_EXISTS = 'EXISTS'; // Reply to storage commands: to indicate that the item you are trying to store with a "cas" command has been modified since you last fetched it
@@ -27,51 +29,37 @@ class TinyMemcacheClient
 		$this->_socket = stream_socket_client( $server );
 	}
 	
-	public function store( $cmd, $key, $flags = 0, $exptime = 0, $value = null, $noreply = null )
+	public function query( $query, $sendData = false, $data = null )
 	{
-		$query = sprintf( '%s %s %d %d %d%s' . "\r\n", $cmd, $key, $flags, $exptime, 
-			strlen( $value ), isset( $noreply ) ? ' 1' : '' );
-		$query .= $value . "\r\n";
+		$query = $query . self::EOL . ( !$sendData ? '' : $data . self::EOL );
 		fwrite( $this->_socket, $query );
 		$line = fgets( $this->_socket );
 		return substr( $line, 0, strlen( $line ) - 2 );
+	}
+	
+	public function store( $cmd, $key, $flags = 0, $exptime = 0, $value = null )
+	{
+		return $this->query( "$cmd $key $flags $exptime " . strlen( $value ), true, $value );
+	}
+	
+	public function set( $key, $value, $exptime = 0, $flags = 0 )
+	{
+		return $this->store( 'set', $key, $flags, $exptime, $value );
 	}
 	
 	public function incr( $key, $value = 1 )
 	{
-		$query = sprintf( 'incr %s %s' . "\r\n", $key, $value );
-		fwrite( $this->_socket, $query );
-		$line = fgets( $this->_socket );
-		return substr( $line, 0, strlen( $line ) - 2 );
+		return $this->query( "incr $key $value" );
 	}
 	
 	public function decr( $key, $value = 1 )
 	{
-		$query = sprintf( 'decr %s %s' . "\r\n", $key, $value );
-		fwrite( $this->_socket, $query );
-		$line = fgets( $this->_socket );
-		return substr( $line, 0, strlen( $line ) - 2 );
-	}
-	
-	public function touch( $key, $exptime )
-	{
-		$query = sprintf( 'touch %s %s' . "\r\n", $key, $exptime );
-		fwrite( $this->_socket, $query );
-		$line = fgets( $this->_socket );
-		return substr( $line, 0, strlen( $line ) - 2 );
+		return $this->query( "decr $key $value" );
 	}
 	
 	public function flushAll( $exptime = 0 )
 	{
-		$query = sprintf( 'flush_all %s' . "\r\n", $exptime );
-		fwrite( $this->_socket, $query );
-		$line = fgets( $this->_socket );
-		return substr( $line, 0, strlen( $line ) - 2 );
-	}
-	
-	public function set( $key, $value, $exptime = 0 )
-	{
-		return $this->store( 'set', $key, 0, $exptime, $value );
+		return $this->query( "flush_all $exptime" );
 	}
 	
 	public function append( $key, $value )
@@ -84,19 +72,19 @@ class TinyMemcacheClient
 		return $this->store( 'prepend', $key, 0, 0, $value );
 	}
 	
-	public function add( $key, $value )
+	public function add( $key, $value, $exptime = 0, $flags = 0 )
 	{
-		return $this->store( 'add', $key, 0, 0, $value );
+		return $this->store( 'add', $key, $flags, $exptime, $value );
 	}
 	
-	public function replace( $key, $value )
+	public function replace( $key, $value, $exptime = 0, $flags = 0 )
 	{
-		return $this->store( 'replace', $key, 0, 0, $value );
+		return $this->store( 'replace', $key, $flags, $exptime, $value );
 	}
 	
-	public function del( $key, $noreply = null )
+	public function del( $key )
 	{
-		$cmd = sprintf( 'delete %s%s' . "\r\n", $key, isset( $noreply ) ? ' 1' : '' );
+		$cmd = sprintf( 'delete %s' . "\r\n", $key );
 		fwrite( $this->_socket, $cmd );
 		$line = fgets( $this->_socket );
 		return substr( $line, 0, strlen( $line ) - 2 );
@@ -142,7 +130,8 @@ class TinyMemcacheClient
 			}
 			elseif ( $cmd == 'VALUE' )
 			{
-				list( $cmd, $key1, $exp, $length ) = explode( ' ', $line );
+				list( $cmd, $key1, $flags, $length ) = explode( ' ', $line );
+				var_dump( $line );
 				$value = fread( $this->_socket, $length + 2 );
 				$values[] = substr( $value, 0, strlen( $value ) - 2 );
 			}
