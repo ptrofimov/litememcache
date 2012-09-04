@@ -21,7 +21,10 @@ class TinyMemcacheClient
 			'OK' => true, 
 			'ERROR' => false, 
 			'DELETED' => true, 
-			'NOT_FOUND' => false );
+			'NOT_FOUND' => false, 
+			'ERROR' => null, 
+			'CLIENT_ERROR' => null, 
+			'SERVER_ERROR' => null );
 	}
 	
 	public function getLastReply()
@@ -37,7 +40,7 @@ class TinyMemcacheClient
 		$line = substr( $line, 0, strlen( $line ) - 2 );
 		list( $reply ) = explode( ' ', $line );
 		$this->_lastReply = $reply;
-		$result = isset( $this->_replies[ $reply ] ) ? $this->_replies[ $reply ] : $reply;
+		$result = isset( $this->_replies[ $reply ] ) ? $this->_replies[ $reply ] : $line;
 		if ( is_null( $result ) )
 		{
 			throw new Exception( $line );
@@ -92,53 +95,23 @@ class TinyMemcacheClient
 	
 	public function get( $key )
 	{
-		$keys = is_array( $key ) ? $key : array( $key );
+		$values = array_fill_keys( is_array( $key ) ? $key : array( $key ), null );
+		$line = $this->query( 'get ' . implode( ' ', array_keys( $values ) ) );
 		
-		$cmd = sprintf( 'get %s' . "\r\n", implode( ' ', $keys ) );
-		fwrite( $this->_socket, $cmd );
-		
-		$values = array();
-		
-		while ( true )
+		while ( $line !== 'END' )
 		{
+			list( $reply ) = explode( ' ', $line );
+			if ( $reply !== 'VALUE' )
+			{
+				throw new Exception( sprintf( 'Invalid reply "%s"', $reply ) );
+			}
+			list( $reply, $key, $flags, $length ) = explode( ' ', $line );
+			$value = fread( $this->_socket, $length + 2 );
+			$values[ $key ] = substr( $value, 0, strlen( $value ) - 2 );
+			
 			$line = fgets( $this->_socket );
 			$line = substr( $line, 0, strlen( $line ) - 2 );
-			
-			list( $cmd ) = explode( ' ', $line );
-			
-			if ( $cmd == 'END' )
-			{
-				if ( !is_array( $key ) )
-				{
-					$values[] = null;
-				}
-				break;
-			}
-			elseif ( $cmd == 'ERROR' )
-			{
-				throw new Exception( 'Error: client sent a nonexistent command name' );
-			}
-			elseif ( $cmd == 'CLIENT_ERROR' )
-			{
-				list( $cmd, $msg ) = explode( ' ', $line );
-				throw new Exception( 'Error: the input doesn\'t conform to the protocol in some way: ' . $msg );
-			}
-			elseif ( $cmd == 'SERVER_ERROR' )
-			{
-				list( $cmd, $msg ) = explode( ' ', $line );
-				throw new Exception( 'Error: some sort of server error prevents the server from carrying out the command: ' . $msg );
-			}
-			elseif ( $cmd == 'VALUE' )
-			{
-				list( $cmd, $key1, $flags, $length ) = explode( ' ', $line );
-				$value = fread( $this->_socket, $length + 2 );
-				$values[] = substr( $value, 0, strlen( $value ) - 2 );
-			}
-			else
-			{
-				throw new Exception( 'System error' );
-			}
 		}
-		return is_array( $key ) ? $values : $values[ 0 ];
+		return count( $values ) == 1 ? reset( $values ) : $values;
 	}
 }
