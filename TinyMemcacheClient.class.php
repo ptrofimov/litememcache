@@ -34,8 +34,15 @@ class TinyMemcacheClient
 		$query = is_array( $query ) ? implode( "\r\n", $query ) : $query;
 		fwrite( $this->_socket, $query . "\r\n" );
 		$line = fgets( $this->_socket );
-		$this->_lastReply = $reply = substr( $line, 0, strlen( $line ) - 2 );
-		return isset( $this->_replies[ $reply ] ) ? $this->_replies[ $reply ] : $reply;
+		$line = substr( $line, 0, strlen( $line ) - 2 );
+		list( $reply ) = explode( ' ', $line );
+		$this->_lastReply = $reply;
+		$result = isset( $this->_replies[ $reply ] ) ? $this->_replies[ $reply ] : $reply;
+		if ( is_null( $result ) )
+		{
+			throw new Exception( $line );
+		}
+		return $result;
 	}
 	
 	public function set( $key, $value, $exptime = 0, $flags = 0 )
