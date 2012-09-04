@@ -32,20 +32,24 @@ class TinyMemcacheClient
 		return $this->_lastReply;
 	}
 	
+	private function _readLine()
+	{
+		$line = fgets( $this->_socket );
+		$this->_lastReply = substr( $line, 0, strlen( $line ) - 2 );
+		$words = explode( ' ', $this->_lastReply );
+		$result = isset( $this->_replies[ $words[ 0 ] ] ) ? $this->_replies[ $words[ 0 ] ] : $words;
+		if ( is_null( $result ) )
+		{
+			throw new Exception( $this->_lastReply );
+		}
+		return ( is_array( $result ) && count( $result ) == 1 ) ? reset( $result ) : $result;
+	}
+	
 	public function query( $query )
 	{
 		$query = is_array( $query ) ? implode( "\r\n", $query ) : $query;
 		fwrite( $this->_socket, $query . "\r\n" );
-		$line = fgets( $this->_socket );
-		$line = substr( $line, 0, strlen( $line ) - 2 );
-		list( $reply ) = explode( ' ', $line );
-		$this->_lastReply = $reply;
-		$result = isset( $this->_replies[ $reply ] ) ? $this->_replies[ $reply ] : $line;
-		if ( is_null( $result ) )
-		{
-			throw new Exception( $line );
-		}
-		return $result;
+		return $this->_readLine();
 	}
 	
 	public function set( $key, $value, $exptime = 0, $flags = 0 )
@@ -96,21 +100,16 @@ class TinyMemcacheClient
 	public function get( $key )
 	{
 		$values = array_fill_keys( is_array( $key ) ? $key : array( $key ), null );
-		$line = $this->query( 'get ' . implode( ' ', array_keys( $values ) ) );
-		
-		while ( $line !== 'END' )
+		$words = $this->query( 'get ' . implode( ' ', array_keys( $values ) ) );
+		while ( $words !== 'END' )
 		{
-			list( $reply ) = explode( ' ', $line );
-			if ( $reply !== 'VALUE' )
+			if ( $words[ 0 ] !== 'VALUE' )
 			{
-				throw new Exception( sprintf( 'Invalid reply "%s"', $reply ) );
+				throw new Exception( sprintf( 'Invalid reply "%s"', $words[ 0 ] ) );
 			}
-			list( $reply, $key, $flags, $length ) = explode( ' ', $line );
-			$value = fread( $this->_socket, $length + 2 );
-			$values[ $key ] = substr( $value, 0, strlen( $value ) - 2 );
-			
-			$line = fgets( $this->_socket );
-			$line = substr( $line, 0, strlen( $line ) - 2 );
+			$value = fread( $this->_socket, $words[ 3 ] + 2 );
+			$values[ $words[ 1 ] ] = substr( $value, 0, strlen( $value ) - 2 );
+			$words = $this->_readLine();
 		}
 		return count( $values ) == 1 ? reset( $values ) : $values;
 	}
