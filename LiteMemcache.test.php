@@ -1,27 +1,27 @@
 <?php
 /**
- * PHPUnit tests for TinyMemcacheClient
+ * PHPUnit tests for LiteMemcache
  * 
  * To run tests:
  * 1. Install PHPUnit: https://github.com/sebastianbergmann/phpunit/
- * 2. Run: phpunit TinyMemcacheClient.test.php
+ * 2. Run: phpunit LiteMemcache.test.php
  * 
- * GitHub repository @link https://github.com/ptrofimov/tinymemcacheclient
+ * GitHub repository @link https://github.com/ptrofimov/litememcache
  * Contacts @author Petr Trofimov <petrofimov@yandex.ru>
  */
-require_once ( 'TinyMemcacheClient.class.php' );
+require_once ( 'LiteMemcache.class.php' );
 
-class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
+class LiteMemcacheTest extends PHPUnit_Framework_TestCase
 {
 	public function __construct( $name = NULL, array $data = array(), $dataName = '' )
 	{
 		parent::__construct( $name, $data, $dataName );
-		$this->_client = new TinyMemcacheClient( 'localhost:11211' );
+		$this->_client = new LiteMemcache( 'localhost:11211' );
 	}
 	
 	public function testClassName()
 	{
-		$this->assertSame( 'TinyMemcacheClient', get_class( $this->_client ) );
+		$this->assertSame( 'LiteMemcache', get_class( $this->_client ) );
 	}
 	
 	public function providerSetDifferentDataTypes()

@@ -1,12 +1,12 @@
 <?php
 /**
- * TinyMemcacheClient - tiny, simple and pure-PHP alternative to Memcache and Memcached clients
+ * LiteMemcache - tiny, simple and pure-PHP alternative to Memcache and Memcached clients
  * 
  * Protocol specification @link https://github.com/memcached/memcached/blob/master/doc/protocol.txt
- * GitHub repository @link https://github.com/ptrofimov/tinymemcacheclient
+ * GitHub repository @link https://github.com/ptrofimov/litememcache
  * Contacts @author Petr Trofimov <petrofimov@yandex.ru>
  */
-class TinyMemcacheClient
+class LiteMemcache
 {
 	private $_socket, $_replies, $_lastReply;
 	
