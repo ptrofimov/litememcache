@@ -229,12 +229,18 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$client->del( 'key' );
 		$this->assertSame( true, $client->set( 'key1', 'value1', 0, 1 ) );
 		$this->assertSame( 'STORED', $client->getLastReply() );
-		$this->assertSame( 'value1', $client->get( 'key1', $flags ) );
-		$this->assertSame( array( 'key1' => '1' ), $flags );
+		$result = $client->get( 'key1', true );
+		$this->assertSame( 'value1', $result[ 'value' ] );
+		$this->assertSame( '1', $result[ 'flags' ] );
+		$this->assertTrue( is_numeric( $result[ 'cas' ] ) );
 		$this->assertSame( true, $client->set( 'key2', 'value2', 0, 2 ) );
 		$this->assertSame( 'STORED', $client->getLastReply() );
-		$this->assertSame( array( 'key1' => 'value1', 'key2' => 'value2' ), 
-			$client->get( array( 'key1', 'key2' ), $flags ) );
-		$this->assertSame( array( 'key1' => '1', 'key2' => '2' ), $flags );
+		$result = $client->get( array( 'key1', 'key2' ), true );
+		$this->assertSame( 'value1', $result[ 'key1' ][ 'value' ] );
+		$this->assertSame( '1', $result[ 'key1' ][ 'flags' ] );
+		$this->assertTrue( is_numeric( $result[ 'key1' ][ 'cas' ] ) );
+		$this->assertSame( 'value2', $result[ 'key2' ][ 'value' ] );
+		$this->assertSame( '2', $result[ 'key2' ][ 'flags' ] );
+		$this->assertTrue( is_numeric( $result[ 'key2' ][ 'cas' ] ) );
 	}
 }

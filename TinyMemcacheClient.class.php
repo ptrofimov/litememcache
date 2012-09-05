@@ -99,7 +99,8 @@ class TinyMemcacheClient
 	
 	public function get( $key, $ext = false )
 	{
-		$keys = array_fill_keys( ( array ) $key, array( 'value' => null, 'flags' => null, 'cas' => null ) );
+		$keys = array_fill_keys( ( array ) $key, 
+			$ext ? array( 'value' => null, 'flags' => null, 'cas' => null ) : null );
 		$words = $this->query( ( $ext ? 'gets' : 'get' ) . ' ' . implode( ' ', array_keys( $keys ) ) );
 		while ( $words !== 'END' )
 		{
@@ -108,10 +109,12 @@ class TinyMemcacheClient
 				throw new Exception( sprintf( 'Invalid reply "%s"', $words[ 0 ] ) );
 			}
 			$value = fread( $this->_socket, $words[ 3 ] + 2 );
-			$keys[ $words[ 1 ] ]['value'] = substr( $value, 0, strlen( $value ) - 2 );
-			$keys[ $words[ 1 ] ]['flags'] = $words[ 2 ];
+			$ext || $keys[ $words[ 1 ] ] = substr( $value, 0, strlen( $value ) - 2 );
+			$ext && $keys[ $words[ 1 ] ][ 'value' ] = substr( $value, 0, strlen( $value ) - 2 );
+			$ext && $keys[ $words[ 1 ] ][ 'flags' ] = $words[ 2 ];
+			$ext && $keys[ $words[ 1 ] ][ 'cas' ] = $words[ 4 ];
 			$words = $this->_readLine();
 		}
-		return count( $values ) == 1 ? reset( $values ) : $values;
+		return is_array( $key ) ? $keys : reset( $keys );
 	}
 }
