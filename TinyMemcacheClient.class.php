@@ -2,10 +2,9 @@
 /**
  * TinyMemcacheClient - tiny, simple and pure-PHP alternative to Memcache and Memcached clients
  * 
- * @see https://github.com/memcached/memcached/blob/master/doc/protocol.txt
- * 
- * @link https://github.com/ptrofimov/tinymemcacheclient
- * @author Petr Trofimov <petrofimov@yandex.ru>
+ * Protocol specification @link https://github.com/memcached/memcached/blob/master/doc/protocol.txt
+ * GitHub repository @link https://github.com/ptrofimov/tinymemcacheclient
+ * Contacts @author Petr Trofimov <petrofimov@yandex.ru>
  */
 class TinyMemcacheClient
 {
@@ -107,17 +106,13 @@ class TinyMemcacheClient
 		$keys = array_fill_keys( ( array ) $key, 
 			$ext ? array( 'value' => null, 'flags' => null, 'cas' => null ) : null );
 		$words = $this->query( ( $ext ? 'gets' : 'get' ) . ' ' . implode( ' ', array_keys( $keys ) ) );
-		while ( $words !== 'END' )
+		while ( $words[ 0 ] == 'VALUE' )
 		{
-			if ( $words[ 0 ] !== 'VALUE' )
-			{
-				throw new Exception( sprintf( 'Invalid reply "%s"', $words[ 0 ] ) );
-			}
 			$value = fread( $this->_socket, $words[ 3 ] + 2 );
-			$ext || $keys[ $words[ 1 ] ] = substr( $value, 0, strlen( $value ) - 2 );
-			$ext && $keys[ $words[ 1 ] ][ 'value' ] = substr( $value, 0, strlen( $value ) - 2 );
-			$ext && $keys[ $words[ 1 ] ][ 'flags' ] = $words[ 2 ];
-			$ext && $keys[ $words[ 1 ] ][ 'cas' ] = $words[ 4 ];
+			$keys[ $words[ 1 ] ] = $ext ? array( 
+				'value' => substr( $value, 0, strlen( $value ) - 2 ), 
+				'flags' => $words[ 2 ], 
+				'cas' => $words[ 4 ] ) : substr( $value, 0, strlen( $value ) - 2 );
 			$words = $this->_readLine();
 		}
 		return is_array( $key ) ? $keys : reset( $keys );

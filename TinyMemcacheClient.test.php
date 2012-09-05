@@ -6,8 +6,8 @@
  * 1. Install PHPUnit: https://github.com/sebastianbergmann/phpunit/
  * 2. Run: phpunit TinyMemcacheClient.test.php
  * 
- * @link https://github.com/ptrofimov/tinymemcacheclient
- * @author Petr Trofimov
+ * GitHub repository @link https://github.com/ptrofimov/tinymemcacheclient
+ * Contacts @author Petr Trofimov <petrofimov@yandex.ru>
  */
 require_once ( 'TinyMemcacheClient.class.php' );
 
