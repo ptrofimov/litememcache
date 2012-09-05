@@ -57,6 +57,11 @@ class TinyMemcacheClient
 		return $this->query( array( "set $key $flags $exptime " . strlen( $value ), $value ) );
 	}
 	
+	public function cas( $key, $value, $cas, $exptime = 0, $flags = 0 )
+	{
+		return $this->query( array( "cas $key $flags $exptime " . strlen( $value ) . " $cas", $value ) );
+	}
+	
 	public function append( $key, $value )
 	{
 		return $this->query( array( "append $key 0 0 " . strlen( $value ), $value ) );

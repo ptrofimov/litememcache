@@ -244,4 +244,23 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$this->assertSame( '2', $result[ 'key2' ][ 'flags' ] );
 		$this->assertTrue( is_numeric( $result[ 'key2' ][ 'cas' ] ) );
 	}
+	
+	public function testCas()
+	{
+		$client = $this->_client;
+		$client->del( 'key' );
+		$this->assertSame( true, $client->set( 'key', 'value1' ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
+		$result = $client->get( 'key', true );
+		$this->assertSame( 'value1', $result[ 'value' ] );
+		$this->assertSame( true, $client->cas( 'key', 'value2', $result[ 'cas' ] ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
+		$this->assertSame( false, $client->cas( 'key', 'value3', $result[ 'cas' ] ) );
+		$this->assertSame( 'EXISTS', $client->getLastReply() );
+		$this->assertSame( 'value2', $client->get( 'key' ) );
+		$client->del( 'key' );
+		$this->assertSame( false, $client->cas( 'key', 'value4', $result[ 'cas' ] ) );
+		$this->assertSame( 'NOT_FOUND', $client->getLastReply() );
+		$this->assertSame( null, $client->get( 'key' ) );
+	}
 }
