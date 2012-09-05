@@ -222,4 +222,19 @@ class TinyMemcacheClientTest extends PHPUnit_Framework_TestCase
 		$this->assertSame( true, $client->flushAll() );
 		$this->assertSame( 'OK', $client->getLastReply() );
 	}
+	
+	public function testFlags()
+	{
+		$client = $this->_client;
+		$client->del( 'key' );
+		$this->assertSame( true, $client->set( 'key1', 'value1', 0, 1 ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
+		$this->assertSame( 'value1', $client->get( 'key1', $flags ) );
+		$this->assertSame( array( 'key1' => '1' ), $flags );
+		$this->assertSame( true, $client->set( 'key2', 'value2', 0, 2 ) );
+		$this->assertSame( 'STORED', $client->getLastReply() );
+		$this->assertSame( array( 'key1' => 'value1', 'key2' => 'value2' ), 
+			$client->get( array( 'key1', 'key2' ), $flags ) );
+		$this->assertSame( array( 'key1' => '1', 'key2' => '2' ), $flags );
+	}
 }

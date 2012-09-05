@@ -97,9 +97,9 @@ class TinyMemcacheClient
 		return $this->query( "flush_all $exptime" );
 	}
 	
-	public function get( $key )
+	public function get( $key, &$flags = null )
 	{
-		$values = array_fill_keys( is_array( $key ) ? $key : array( $key ), null );
+		$flags = $values = array_fill_keys( is_array( $key ) ? $key : array( $key ), null );
 		$words = $this->query( 'get ' . implode( ' ', array_keys( $values ) ) );
 		while ( $words !== 'END' )
 		{
@@ -109,6 +109,7 @@ class TinyMemcacheClient
 			}
 			$value = fread( $this->_socket, $words[ 3 ] + 2 );
 			$values[ $words[ 1 ] ] = substr( $value, 0, strlen( $value ) - 2 );
+			$flags[ $words[ 1 ] ] = $words[ 2 ];
 			$words = $this->_readLine();
 		}
 		return count( $values ) == 1 ? reset( $values ) : $values;
