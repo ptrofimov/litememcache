@@ -4,10 +4,11 @@
 
 **Key points**
 
-* *Full-featured:* supports all necessary Memcached commands
+* *Full-featured:* supports all Memcached commands (including CAS)
 * *Simple:* just Memcached protocol, nothing more
-* *Really tiny:* only 110 lines of code
+* *Really tiny:* only 105 lines of code
 * *Requires nothing:* pure PHP implementation
+* *Reliable:* all methods are covered with unit-tests
 
 **Usage example**
 
@@ -25,10 +26,11 @@ $value = $client->get( 'key' );
 
 **Основные моменты**
 
-* *Полнофункциональный:* поддерживает все команды Memcached
+* *Полнофункциональный:* поддерживает все команды Memcached (включая CAS)
 * *Простой:* только протокол Memcached, ничего лишнего
-* *Крошечный:* всего 110 строк кода
+* *Крошечный:* всего 105 строк кода
 * *Нетребовательный:* написан на чистом PHP
+* *Надежный:* все методы покрыты юнит-тестами
 
 **Пример использования**
 
@@ -40,4 +42,4 @@ $value = $client->get( 'ключ' );
 
 --------------------------------------------------
 
-Keywords: litememcache, memcached, memcache, storage, nosql, php, client, lightweight, light, easy, simple, small, tiny, protocol
+Keywords: litememcache, memcached, memcache, php, pure, client, protocol, lightweight, simple
