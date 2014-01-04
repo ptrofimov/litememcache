@@ -12,7 +12,11 @@ class LiteMemcache
 	
 	public function __construct( $server )
 	{
-		$this->_socket = stream_socket_client( $server );
+		$this->_socket = stream_socket_client( $server, $errno, $errstr );
+		if ( !$this->_socket )
+		{
+			throw new Exception( "$errstr ($errno)" );
+		}
 		$this->_replies = array( 
 			'STORED' => true, 
 			'NOT_STORED' => false, 
