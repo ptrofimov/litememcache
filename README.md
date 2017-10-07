@@ -33,6 +33,27 @@ $value = $client->get( 'key' );
 * *Надежный:* все методы покрыты юнит-тестами
 
 **Пример использования**
+composer.json
+```json
+"repositories": [
+    {
+      "type":"package",
+      "package": {
+        "name": "ptrofimov/litememcache",
+        "version":"1.0.0",
+        "source": {
+          "url": "https://github.com/ptrofimov/litememcache.git",
+          "type": "git",
+          "reference":"master"
+        }
+      }
+    }
+  ],
+  "require": {
+    "php": ">=7.1.10",
+    "ptrofimov/litememcache" : "1.0.0"
+  }
+```
 
 ```php
 $client = new LiteMemcache( 'хост:порт' );
